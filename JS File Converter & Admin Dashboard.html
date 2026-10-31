@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Converter Pro & Admin Portal</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        glass: {
+                            surface: 'rgba(30, 41, 59, 0.7)',
+                            border: 'rgba(255, 255, 255, 0.08)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts & Chart.js -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Third-Party Conversion & Visual Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .glass-card {
+            background: rgba(30, 41, 59, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .light .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        .glow-effect {
+            box-shadow: 0 0 25px -5px rgba(14, 165, 233, 0.3);
+        }
+        .drag-active {
+            border-color: #38bdf8 !important;
+            background-color: rgba(14, 165, 233, 0.1) !important;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 9999px; }
+    </style>
+</head>
+<body class="bg-slate-950 light:bg-slate-50 text-slate-100 light:text-slate-800 min-h-full flex flex-col font-sans transition-colors duration-300">
+
+    <!-- Top Announcement Bar (Configurable by Admin) -->
+    <div id="announcement-bar" class="bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs py-2 px-4 flex items-center justify-between shadow-md">
+        <div class="max-w-7xl mx-auto w-full flex items-center justify-between">
+            <span id="announcement-text" class="font-medium flex items-center gap-2">
+                <i class="fa-solid fa-bolt text-amber-300"></i> 100% Client-Side Conversion. Fast, safe & secure file transformation!
+            </span>
+            <div class="flex items-center gap-3">
+                <button onclick="openProModal()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-xs transition">
+                    Get Pro Membership
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <header class="glass-card sticky top-0 z-40 border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('converter')">
+                <div class="w-10 h-10 bg-gradient-to-tr from-brand-600 to-cyan-400 rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-lg glow-effect">
+                    JS
+                </div>
+                <div>
+                    <span class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-400 bg-clip-text text-transparent">JS Converter</span>
+                    <span class="text-[10px] bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded-full ml-1 font-semibold">Pro Suite</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <nav class="flex gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800">
+                    <button onclick="switchView('converter')" id="nav-btn-converter" class="nav-btn px-4 py-1.5 rounded-lg text-xs font-semibold transition bg-brand-600 text-white shadow-sm">
+                        <i class="fa-solid fa-arrows-rotate mr-1.5"></i>Converter
+                    </button>
+                    <button onclick="switchView('history')" id="nav-btn-history" class="nav-btn px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>History
+                    </button>
+                </nav>
+
+                <!-- Admin Access Button -->
+                <button onclick="handleAdminAccess()" id="admin-portal-btn" class="flex items-center gap-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition">
+                    <i class="fa-solid fa-user-shield text-indigo-400"></i>
+                    <span id="admin-btn-label">Admin Rights</span>
+                </button>
+
+                <!-- Theme Toggle -->
+                <button onclick="toggleTheme()" class="p-2 text-slate-400 hover:text-white rounded-xl transition">
+                    <i id="theme-icon" class="fa-solid fa-moon text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Header Ad Unit Slot #1 -->
+    <div id="ad-slot-header" class="max-w-7xl mx-auto px-4 mt-4 w-full">
+        <div class="glass-card border border-brand-500/20 rounded-2xl p-3 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[80px]">
+            <span class="text-[9px] uppercase font-bold text-brand-400 tracking-wider mb-1">Sponsored Advertisement</span>
+            <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-300">
+                <i class="fa-solid fa-server text-2xl text-cyan-400"></i>
+                <div>
+                    <strong class="block text-white">Ultra-Fast Cloud Servers & API Deployment</strong>
+                    <span class="text-slate-400 text-[11px]">Deploy scalable web apps in seconds with 99.9% uptime guarantee.</span>
+                </div>
+                <button onclick="registerAdClick()" class="bg-brand-500 hover:bg-brand-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition">Try Free $100 Credit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- VIEW 1: FILE CONVERTER UI -->
+        <section id="view-converter" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+                <!-- Left Column (3 cols): Converter Panel -->
+                <div class="lg:col-span-3 space-y-6">
+                    
+                    <!-- File Drag & Drop Zone -->
+                    <div id="drop-zone" onclick="document.getElementById('file-input').click()" class="glass-card rounded-3xl p-10 text-center border-2 border-dashed border-slate-700/80 hover:border-brand-500/80 transition-all cursor-pointer group relative overflow-hidden shadow-2xl">
+                        <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(event)" accept=".txt,.html,.htm,.docx,.json,.csv,.md">
+                        
+                        <div id="upload-idle" class="space-y-4">
+                            <div class="w-20 h-20 bg-brand-500/10 text-brand-400 rounded-3xl flex items-center justify-center mx-auto text-3xl group-hover:scale-110 transition duration-300 border border-brand-500/20">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">Drag & drop your files here</h3>
+                                <p class="text-xs text-slate-400 mt-1">Supports DOCX, TXT, HTML, JSON, CSV, MD files (Up to <span id="free-size-limit">25MB</span>)</p>
+                            </div>
+                            <button type="button" class="bg-gradient-to-r from-brand-600 to-cyan-500 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-brand-500/20 transition group-hover:shadow-brand-500/40">
+                                Choose Local File
+                            </button>
+                        </div>
+
+                        <div id="upload-selected" class="hidden space-y-4">
+                            <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-emerald-500/30">
+                                <i class="fa-solid fa-file-circle-check"></i>
+                            </div>
+                            <div>
+                                <h4 id="file-name-display" class="font-bold text-lg text-white max-w-md mx-auto truncate">filename.docx</h4>
+                                <p id="file-meta-display" class="text-xs text-slate-400 mt-0.5">Size: 0 KB</p>
+                            </div>
+                            <button type="button" onclick="event.stopPropagation(); resetFileSelection();" class="text-xs text-rose-400 hover:text-rose-300 font-medium underline">
+                                Choose Different File
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Settings & Action Buttons -->
+                    <div class="glass-card rounded-2xl p-6 space-y-5 border border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-brand-400"></i> Target Conversion Format
+                            </h3>
+                            <span class="text-[10px] bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700">Client Processing</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">OUTPUT EXTENSION</label>
+                                <select id="target-format-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-brand-500">
+                                    <option value="pdf">PDF Document (.pdf)</option>
+                                    <option value="txt">Plain Text (.txt)</option>
+                                    <option value="html">HTML Web File (.html)</option>
+                                    <option value="json">JSON Structure (.json)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">PRESET MODE</label>
+                                <select id="preset-mode-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-brand-500">
+                                    <option value="standard">Standard Quality</option>
+                                    <option value="formatted">Formatted Layout Preservation</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div id="conversion-progress" class="hidden space-y-1.5">
+                            <div class="flex justify-between text-xs font-semibold">
+                                <span class="text-slate-400">Converting content...</span>
+                                <span id="progress-percent" class="text-brand-400">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div id="progress-fill" class="bg-gradient-to-r from-brand-500 to-cyan-400 h-2 rounded-full w-0 transition-all duration-300"></div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="flex gap-3">
+                            <button id="convert-btn" onclick="executeConversion()" disabled class="flex-1 bg-gradient-to-r from-brand-600 to-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed hover:from-brand-500 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-bolt"></i> Convert File Now
+                            </button>
+                            <button id="download-btn" onclick="triggerDownload()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2 animate-bounce">
+                                <i class="fa-solid fa-download"></i> Download Converted File
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Live Content Preview Box -->
+                    <div class="glass-card rounded-2xl p-6 space-y-3 border border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                                <i class="fa-solid fa-code text-cyan-400"></i> Conversion Preview
+                            </h3>
+                            <span id="preview-badge" class="text-[10px] bg-slate-900 text-slate-400 px-2.5 py-1 rounded-md">Idle</span>
+                        </div>
+                        <div id="preview-output" class="w-full h-56 bg-slate-950/80 border border-slate-800 rounded-xl p-4 overflow-auto font-mono text-xs text-slate-300 whitespace-pre-wrap">
+                            Converted text or document preview will render here automatically...
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column (1 col): Ads & Monetization Widget -->
+                <div class="space-y-6">
+
+                    <!-- Sidebar Ad Unit Slot #2 -->
+                    <div id="ad-slot-sidebar" class="glass-card border border-slate-800 rounded-2xl p-5 text-center flex flex-col justify-between min-h-[320px]">
+                        <span class="text-[9px] font-bold text-slate-500 tracking-wider uppercase">Sponsored Promotion</span>
+                        <div class="my-auto space-y-3">
+                            <div class="w-14 h-14 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto text-2xl border border-indigo-500/30">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <h4 class="font-bold text-white text-sm">JS Cyber Shield VPN</h4>
+                            <p class="text-xs text-slate-400">Encrypt file downloads and secure online browsing with high speeds.</p>
+                            <button onclick="registerAdClick()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl text-xs font-bold transition shadow-md">Get 80% Discount</button>
+                        </div>
+                        <span class="text-[9px] text-slate-600">Google AdSense Partner Slot</span>
+                    </div>
+
+                    <!-- Pro Plan Upgrade Banner -->
+                    <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 rounded-2xl p-5 space-y-4 border border-indigo-500/30 relative overflow-hidden shadow-xl">
+                        <div class="flex items-center justify-between">
+                            <span class="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Pro Upgrade</span>
+                            <i class="fa-solid fa-crown text-amber-400 text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-bold text-white">Unlock Unlimited Conversions</h4>
+                            <p class="text-xs text-slate-400 mt-1">Remove all daily limits & convert large batch files instantly.</p>
+                        </div>
+                        <button onclick="openProModal()" class="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-extrabold py-2.5 rounded-xl text-xs transition shadow-lg">
+                            Upgrade Plan (<span id="pro-price-btn">$9.99/mo</span>)
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- VIEW 2: CONVERSION HISTORY -->
+        <section id="view-history" class="hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 border border-slate-800">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Conversion History Log</h3>
+                        <p class="text-xs text-slate-400">Stored locally in client browser state.</p>
+                    </div>
+                    <button onclick="clearHistoryLog()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold border border-rose-500/30 px-3 py-1.5 rounded-xl">
+                        <i class="fa-solid fa-trash mr-1"></i> Clear Log
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-500 uppercase">
+                                <th class="py-3 px-3">Time</th>
+                                <th class="py-3 px-3">Source File</th>
+                                <th class="py-3 px-3">Output Format</th>
+                                <th class="py-3 px-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-rows" class="divide-y divide-slate-800/50">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: FULL ADMIN DASHBOARD (RIGHTS MANAGED) -->
+        <section id="view-admin" class="hidden space-y-6">
+            
+            <!-- Admin Top Welcome Banner -->
+            <div class="glass-card rounded-2xl p-6 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-slate-900 to-indigo-950/60">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-indigo-600/30 text-indigo-400 rounded-2xl flex items-center justify-center text-xl border border-indigo-500/30">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Admin Control & Monetization Rights</h2>
+                        <p class="text-xs text-slate-400">Manage earnings, AdSense toggles, subscription prices, and daily limits.</p>
+                    </div>
+                </div>
+                <button onclick="logoutAdmin()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 px-4 py-2 rounded-xl text-xs font-bold transition">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Exit Admin Mode
+                </button>
+            </div>
+
+            <!-- Analytics Overview Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-card p-5 rounded-2xl border border-slate-800">
+                    <span class="text-xs text-slate-400 font-semibold">Total Revenue</span>
+                    <div id="admin-stat-revenue" class="text-2xl font-black text-emerald-400 mt-1">$142.80</div>
+                    <span class="text-[10px] text-emerald-500">AdSense + Pro Subs</span>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl border border-slate-800">
+                    <span class="text-xs text-slate-400 font-semibold">Ad Impressions / Clicks</span>
+                    <div id="admin-stat-ads" class="text-2xl font-black text-cyan-400 mt-1">4,280 / 112</div>
+                    <span class="text-[10px] text-slate-500">Live AdSense Tracking</span>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl border border-slate-800">
+                    <span class="text-xs text-slate-400 font-semibold">Total File Conversions</span>
+                    <div id="admin-stat-conversions" class="text-2xl font-black text-brand-400 mt-1">892</div>
+                    <span class="text-[10px] text-brand-500">Client processing</span>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl border border-slate-800">
+                    <span class="text-xs text-slate-400 font-semibold">Active Pro Subscribers</span>
+                    <div id="admin-stat-subs" class="text-2xl font-black text-amber-400 mt-1">12 Users</div>
+                    <span class="text-[10px] text-amber-500">Recurring Monthly</span>
+                </div>
+            </div>
+
+            <!-- Revenue Analytics Chart -->
+            <div class="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-chart-area text-emerald-400"></i> Revenue Analytics & Growth Chart
+                </h3>
+                <div class="h-64 w-full">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Admin Settings Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- Monetization Controls & AdSense Toggles -->
+                <div class="glass-card rounded-2xl p-6 border border-slate-800 space-y-5">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-rectangle-ad text-cyan-400"></i> AdSense & Monetization Controls
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                            <div>
+                                <strong class="block text-xs text-white">Header Ad Unit (Slot #1)</strong>
+                                <span class="text-[10px] text-slate-400">Display top horizontal AdSense banner</span>
+                            </div>
+                            <input type="checkbox" id="toggle-ad-header" onchange="updateAdminSettings()" checked class="w-4 h-4 accent-brand-500 cursor-pointer">
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                            <div>
+                                <strong class="block text-xs text-white">Sidebar Ad Unit (Slot #2)</strong>
+                                <span class="text-[10px] text-slate-400">Display right column promo card</span>
+                            </div>
+                            <input type="checkbox" id="toggle-ad-sidebar" onchange="updateAdminSettings()" checked class="w-4 h-4 accent-brand-500 cursor-pointer">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">GOOGLE ADSENSE CLIENT ID</label>
+                            <input type="text" id="adsense-client-id" value="ca-pub-9988776655443322" onchange="updateAdminSettings()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Pricing & System Limits -->
+                <div class="glass-card rounded-2xl p-6 border border-slate-800 space-y-5">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-amber-400"></i> SaaS Pricing & Limits Control
+                    </h3>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">PRO MONTHLY PRICE ($)</label>
+                                <input type="number" id="setting-pro-price" value="9.99" step="0.01" onchange="updateAdminSettings()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">FREE FILE SIZE LIMIT (MB)</label>
+                                <input type="number" id="setting-free-limit" value="25" onchange="updateAdminSettings()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">ANNOUNCEMENT BAR MESSAGE</label>
+                            <input type="text" id="setting-announcement" value="100% Client-Side Conversion. Fast, safe & secure file transformation!" onchange="updateAdminSettings()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ADMIN LOGIN MODAL -->
+    <div id="admin-login-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card max-w-sm w-full p-6 rounded-3xl border border-indigo-500/30 text-center space-y-4 shadow-2xl relative">
+            <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="w-14 h-14 bg-indigo-600/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto text-2xl border border-indigo-500/30">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white">Admin Authentication</h3>
+                <p class="text-xs text-slate-400 mt-1">Enter password to access admin rights</p>
+            </div>
+            <form onsubmit="verifyAdminLogin(event)" class="space-y-3">
+                <input type="password" id="admin-password-input" placeholder="Password (default: admin123)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-brand-600 hover:from-indigo-500 hover:to-brand-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-lg transition">
+                    Log In to Dashboard
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PRO SUBSCRIPTION MODAL -->
+    <div id="pro-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full p-6 rounded-3xl border border-amber-500/30 text-center space-y-5 shadow-2xl relative">
+            <button onclick="closeProModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto text-2xl border border-amber-500/30">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-white">JS Converter Pro</h3>
+                <p class="text-xs text-slate-400 mt-1">Upgrade today for unlimited file size & ad-free experience.</p>
+            </div>
+            <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 text-left space-y-2 text-xs">
+                <div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-check text-emerald-400"></i> Batch file processing</div>
+                <div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-check text-emerald-400"></i> Unlimited file size capacity</div>
+                <div class="flex items-center gap-2 text-slate-300"><i class="fa-solid fa-check text-emerald-400"></i> Zero advertisement popups</div>
+            </div>
+            <button onclick="simulateProPurchase()" class="w-full bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-extrabold py-3 rounded-xl text-xs shadow-lg transition">
+                Subscribe Now (<span id="modal-pro-price">$9.99/mo</span>)
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        // Global State & Settings
+        let selectedFile = null;
+        let convertedBlob = null;
+        let convertedFileName = "";
+        let isAdminLoggedIn = false;
+
+        // Admin Configurable App State
+        let appConfig = JSON.parse(localStorage.getItem('js_app_config') || JSON.stringify({
+            proPrice: 9.99,
+            freeLimitMB: 25,
+            announcement: "100% Client-Side Conversion. Fast, safe & secure file transformation!",
+            showAdHeader: true,
+            showAdSidebar: true,
+            adsenseClient: "ca-pub-9988776655443322"
+        }));
+
+        // Revenue & Metrics State
+        let appStats = JSON.parse(localStorage.getItem('js_app_stats') || JSON.stringify({
+            totalRevenue: 142.80,
+            adImpressions: 4280,
+            adClicks: 112,
+            conversions: 892,
+            proSubs: 12,
+            history: []
+        }));
+
+        let revenueChartInstance = null;
+
+        // DOM Ready Load
+        window.addEventListener('DOMContentLoaded', () => {
+            applyAdminSettingsUI();
+            initChart();
+            renderHistoryTable();
+            initDragAndDrop();
+        });
+
+        // Theme Toggle (Light / Dark)
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        // View Switcher
+        function switchView(viewName) {
+            if (viewName === 'admin' && !isAdminLoggedIn) {
+                document.getElementById('admin-login-modal').classList.remove('hidden');
+                return;
+            }
+
+            document.querySelectorAll('#view-converter, #view-history, #view-admin').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-600', 'text-white');
+                btn.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-btn-${viewName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-brand-600', 'text-white');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            if (viewName === 'admin') {
+                setTimeout(() => { if (revenueChartInstance) revenueChartInstance.resize(); }, 100);
+            }
+        }
+
+        // Admin Auth
+        function handleAdminAccess() {
+            if (isAdminLoggedIn) {
+                switchView('admin');
+            } else {
+                document.getElementById('admin-login-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-login-modal').classList.add('hidden');
+        }
+
+        function verifyAdminLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-password-input').value;
+            if (pass === 'admin123') {
+                isAdminLoggedIn = true;
+                closeAdminModal();
+                document.getElementById('admin-btn-label').innerText = "Dashboard";
+                switchView('admin');
+            } else {
+                alert("Incorrect Password! Default is: admin123");
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-btn-label').innerText = "Admin Rights";
+            switchView('converter');
+        }
+
+        // Drag and Drop Logic
+        function initDragAndDrop() {
+            const dropZone = document.getElementById('drop-zone');
+            ['dragenter', 'dragover'].forEach(name => {
+                dropZone.addEventListener(name, (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('drag-active');
+                });
+            });
+            ['dragleave', 'drop'].forEach(name => {
+                dropZone.addEventListener(name, (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('drag-active');
+                });
+            });
+            dropZone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) processFile(files[0]);
+            });
+        }
+
+        function handleFileSelect(e) {
+            if (e.target.files.length > 0) processFile(e.target.files[0]);
+        }
+
+        function processFile(file) {
+            selectedFile = file;
+            document.getElementById('upload-idle').classList.add('hidden');
+            document.getElementById('upload-selected').classList.remove('hidden');
+            document.getElementById('file-name-display').innerText = file.name;
+            document.getElementById('file-meta-display').innerText = `Size: ${(file.size / 1024).toFixed(2)} KB`;
+            document.getElementById('convert-btn').disabled = false;
+            document.getElementById('download-btn').classList.add('hidden');
+            document.getElementById('preview-badge').innerText = "Ready";
+        }
+
+        function resetFileSelection() {
+            selectedFile = null;
+            document.getElementById('file-input').value = "";
+            document.getElementById('upload-idle').classList.remove('hidden');
+            document.getElementById('upload-selected').classList.add('hidden');
+            document.getElementById('convert-btn').disabled = true;
+            document.getElementById('download-btn').classList.add('hidden');
+            document.getElementById('preview-output').innerText = "Converted text or document preview will render here automatically...";
+            document.getElementById('preview-badge').innerText = "Idle";
+        }
+
+        // Client Conversion Engine
+        async function executeConversion() {
+            if (!selectedFile) return;
+
+            const targetFormat = document.getElementById('target-format-select').value;
+            const progressBox = document.getElementById('conversion-progress');
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercent = document.getElementById('progress-percent');
+
+            progressBox.classList.remove('hidden');
+            document.getElementById('convert-btn').disabled = true;
+
+            let pct = 0;
+            const timer = setInterval(() => {
+                pct += 20;
+                if (pct > 90) clearInterval(timer);
+                progressFill.style.width = `${pct}%`;
+                progressPercent.innerText = `${pct}%`;
+            }, 70);
+
+            try {
+                const ext = selectedFile.name.split('.').pop().toLowerCase();
+                let outputText = "";
+
+                if (targetFormat === 'pdf') {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    if (['txt', 'html', 'json', 'csv', 'md'].includes(ext)) {
+                        const content = await selectedFile.text();
+                        doc.text(doc.splitTextToSize(content, 180), 10, 10);
+                    } else if (ext === 'docx') {
+                        const buffer = await selectedFile.arrayBuffer();
+                        const res = await mammoth.extractRawText({ arrayBuffer: buffer });
+                        doc.text(doc.splitTextToSize(res.value, 180), 10, 10);
+                    } else {
+                        doc.text(`Converted file content of ${selectedFile.name}`, 10, 10);
+                    }
+                    convertedBlob = doc.output('blob');
+                    convertedFileName = `${getFileNameWithoutExt(selectedFile.name)}.pdf`;
+                    outputText = `[PDF Document Generated]\nSize: ${(convertedBlob.size / 1024).toFixed(2)} KB`;
+                } else if (targetFormat === 'txt') {
+                    if (ext === 'docx') {
+                        const buffer = await selectedFile.arrayBuffer();
+                        const res = await mammoth.extractRawText({ arrayBuffer: buffer });
+                        outputText = res.value;
+                    } else {
+                        outputText = await selectedFile.text();
+                    }
+                    convertedBlob = new Blob([outputText], { type: 'text/plain' });
+                    convertedFileName = `${getFileNameWithoutExt(selectedFile.name)}.txt`;
+                } else if (targetFormat === 'html') {
+                    const txt = await selectedFile.text();
+                    outputText = `<!DOCTYPE html>\n<html>\n<body>\n<pre>${txt.replace(/</g, "&lt;")}</pre>\n</body>\n</html>`;
+                    convertedBlob = new Blob([outputText], { type: 'text/html' });
+                    convertedFileName = `${getFileNameWithoutExt(selectedFile.name)}.html`;
+                } else if (targetFormat === 'json') {
+                    const txt = await selectedFile.text();
+                    outputText = JSON.stringify({ fileName: selectedFile.name, content: txt }, null, 2);
+                    convertedBlob = new Blob([outputText], { type: 'application/json' });
+                    convertedFileName = `${getFileNameWithoutExt(selectedFile.name)}.json`;
+                }
+
+                clearInterval(timer);
+                progressFill.style.width = '100%';
+                progressPercent.innerText = '100%';
+
+                setTimeout(() => {
+                    progressBox.classList.add('hidden');
+                    document.getElementById('convert-btn').disabled = false;
+                    document.getElementById('download-btn').classList.remove('hidden');
+                    document.getElementById('preview-output').innerText = outputText.substring(0, 1500);
+                    document.getElementById('preview-badge').innerText = `Converted (${targetFormat.toUpperCase()})`;
+
+                    // Update Analytics Stats
+                    appStats.conversions += 1;
+                    appStats.history.unshift({
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        name: selectedFile.name,
+                        format: targetFormat.toUpperCase()
+                    });
+                    saveAppStats();
+                    renderHistoryTable();
+                }, 300);
+
+            } catch (err) {
+                clearInterval(timer);
+                progressBox.classList.add('hidden');
+                document.getElementById('convert-btn').disabled = false;
+                alert("Conversion Error: " + err.message);
+            }
+        }
+
+        function triggerDownload() {
+            if (!convertedBlob) return;
+            const url = URL.createObjectURL(convertedBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = convertedFileName;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function getFileNameWithoutExt(name) {
+            return name.substring(0, name.lastIndexOf('.')) || name;
+        }
+
+        // Admin & Settings Engine
+        function updateAdminSettings() {
+            appConfig.showAdHeader = document.getElementById('toggle-ad-header').checked;
+            appConfig.showAdSidebar = document.getElementById('toggle-ad-sidebar').checked;
+            appConfig.adsenseClient = document.getElementById('adsense-client-id').value;
+            appConfig.proPrice = parseFloat(document.getElementById('setting-pro-price').value) || 9.99;
+            appConfig.freeLimitMB = parseInt(document.getElementById('setting-free-limit').value) || 25;
+            appConfig.announcement = document.getElementById('setting-announcement').value;
+
+            localStorage.setItem('js_app_config', JSON.stringify(appConfig));
+            applyAdminSettingsUI();
+        }
+
+        function applyAdminSettingsUI() {
+            document.getElementById('ad-slot-header').style.display = appConfig.showAdHeader ? 'block' : 'none';
+            document.getElementById('ad-slot-sidebar').style.display = appConfig.showAdSidebar ? 'flex' : 'none';
+            document.getElementById('announcement-text').innerText = appConfig.announcement;
+            document.getElementById('pro-price-btn').innerText = `$${appConfig.proPrice.toFixed(2)}/mo`;
+            document.getElementById('modal-pro-price').innerText = `$${appConfig.proPrice.toFixed(2)}/mo`;
+            document.getElementById('free-size-limit').innerText = `${appConfig.freeLimitMB}MB`;
+
+            // Admin Panel Controls Match Config
+            document.getElementById('toggle-ad-header').checked = appConfig.showAdHeader;
+            document.getElementById('toggle-ad-sidebar').checked = appConfig.showAdSidebar;
+            document.getElementById('adsense-client-id').value = appConfig.adsenseClient;
+            document.getElementById('setting-pro-price').value = appConfig.proPrice;
+            document.getElementById('setting-free-limit').value = appConfig.freeLimitMB;
+            document.getElementById('setting-announcement').value = appConfig.announcement;
+
+            updateAdminStatDisplay();
+        }
+
+        function registerAdClick() {
+            appStats.adClicks += 1;
+            appStats.totalRevenue += 0.35;
+            saveAppStats();
+            alert("Thank you for supporting partner sponsors!");
+        }
+
+        function simulateProPurchase() {
+            appStats.proSubs += 1;
+            appStats.totalRevenue += appConfig.proPrice;
+            saveAppStats();
+            closeProModal();
+            alert("🎉 Thank you! Pro Upgrade Activated.");
+        }
+
+        function saveAppStats() {
+            localStorage.setItem('js_app_stats', JSON.stringify(appStats));
+            updateAdminStatDisplay();
+        }
+
+        function updateAdminStatDisplay() {
+            document.getElementById('admin-stat-revenue').innerText = `$${appStats.totalRevenue.toFixed(2)}`;
+            document.getElementById('admin-stat-ads').innerText = `${appStats.adImpressions} / ${appStats.adClicks}`;
+            document.getElementById('admin-stat-conversions').innerText = appStats.conversions;
+            document.getElementById('admin-stat-subs').innerText = `${appStats.proSubs} Users`;
+        }
+
+        function renderHistoryTable() {
+            const rows = document.getElementById('history-rows');
+            if (appStats.history.length === 0) {
+                rows.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">No conversion logs found.</td></tr>`;
+                return;
+            }
+            rows.innerHTML = appStats.history.slice(0, 15).map(item => `
+                <tr class="hover:bg-slate-900/40">
+                    <td class="py-2.5 px-3 text-slate-400">${item.time}</td>
+                    <td class="py-2.5 px-3 font-semibold text-white">${item.name}</td>
+                    <td class="py-2.5 px-3"><span class="bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded text-[10px] font-bold">${item.format}</span></td>
+                    <td class="py-2.5 px-3 text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check mr-1"></i> Success</td>
+                </tr>
+            `).join('');
+        }
+
+        function clearHistoryLog() {
+            appStats.history = [];
+            saveAppStats();
+            renderHistoryTable();
+        }
+
+        function openProModal() { document.getElementById('pro-modal').classList.remove('hidden'); }
+        function closeProModal() { document.getElementById('pro-modal').classList.add('hidden'); }
+
+        // Chart.js Revenue Initialization
+        function initChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            revenueChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: [12, 19, 15, 28, 22, 34, 42],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
